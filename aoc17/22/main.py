@@ -30,31 +30,28 @@ def print_grid(infected: set[(int, int)], weakened: set[(int, int)], flagged: se
 
 
 def run_simulation(infected: set[(int, int)], pos: (int, int), iterations: int) -> int:
-    dirs = [(0, 1), (-1, 0), (0, -1), (1, 0)]  # left turns
-    dirs_idx = 0
+    dx, dy = 0, 1
     c = 0
     for _ in range(iterations):
         if pos in infected:
-            dirs_idx = (dirs_idx + 3) % 4
+            dx, dy = dy, -dx
             infected.remove(pos)
         else:
-            dirs_idx = (dirs_idx + 1) % 4
+            dx, dy = -dy, dx
             infected.add(pos)
             c += 1
-        direction = dirs[dirs_idx]
-        pos = (pos[0] + direction[0], pos[1] + direction[1])
+        pos = (pos[0] + dx, pos[1] + dy)
     return c
 
 
 def run_simulation_evolved(infected: set[(int, int)], pos: (int, int), iterations: int) -> int:
-    dirs = [(0, 1), (-1, 0), (0, -1), (1, 0)]  # left turns
-    dirs_idx = 0
+    dx, dy = 0, 1
     c = 0
     weakened = set()
     flagged = set()
     for _ in range(iterations):
         if pos in infected:
-            dirs_idx = (dirs_idx + 3) % 4
+            dx, dy = dy, -dx
             infected.remove(pos)
             flagged.add(pos)
         elif pos in weakened:
@@ -62,13 +59,12 @@ def run_simulation_evolved(infected: set[(int, int)], pos: (int, int), iteration
             infected.add(pos)
             c += 1
         elif pos in flagged:
-            dirs_idx = (dirs_idx + 2) % 4
+            dx, dy = -dx, -dy
             flagged.remove(pos)
         else:
-            dirs_idx = (dirs_idx + 1) % 4
+            dx, dy = -dy, dx
             weakened.add(pos)
-        direction = dirs[dirs_idx]
-        pos = (pos[0] + direction[0], pos[1] + direction[1])
+        pos = (pos[0] + dx, pos[1] + dy)
     return c
 
 
