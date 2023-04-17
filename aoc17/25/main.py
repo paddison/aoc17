@@ -1,40 +1,36 @@
 Instruction = (int, int, str)  # value_to_write, movement, next_state
 
 
-def parse_input(filename: str) -> (str, int, dict[str, list[Instruction]]):
+def get_lines(filename: str) -> list[str]:
     with open(filename) as file:
-        statemachine = dict()
-        starting_state = file.readline().strip()[-2]
-        iterations = int(file.readline().strip().split()[-2])
-        file.readline()  # ignore empty line
-        while True:
-            state_line = file.readline().strip()
-            if state_line == '':
-                break
-            state = state_line[-2]
-            instructions = [None, None]
-            for i in range(2):
-                file.readline()  # ignore line for cur value == 0/1
-                value_to_write = int(file.readline().strip()[-2])
-                movement = 1 if file.readline().strip().split()[-1].startswith('right') else -1
-                next_state = file.readline().strip()[-2]
-                instructions[i] = (value_to_write, movement, next_state)
-            statemachine[state] = instructions
-            file.readline()  # ignore empty line
+        return list(reversed([line.strip() for line in file if line.strip() != '']))
 
-        return starting_state, iterations, statemachine
+
+def parse_lines(lines: list[str]) -> (str, int, dict[str, (Instruction, Instruction)]):
+    statemachine = dict()
+    starting_state = lines.pop()[-2]
+    iterations = int(lines.pop().split()[-2])
+    while lines:
+        state = lines.pop()[-2]
+        statemachine[state] = parse_instruction(lines), parse_instruction(lines)
+    return starting_state, iterations, statemachine
+
+
+def parse_instruction(lines: list[str]) -> Instruction:
+    lines.pop()  # ignore line for cur value == 0/1
+    value_to_write = int(lines.pop()[-2])
+    movement = 1 if lines.pop().split()[-1].startswith('right') else -1
+    next_state = lines.pop()[-2]
+    return value_to_write, movement, next_state
 
 
 def main():
-    current_state, iterations, statemachine = parse_input('data.txt')
+    current_state, iterations, statemachine = parse_lines(get_lines('data.txt'))
     memory = dict()  # pos, value
-    current_position = 0
+    cursor = 0
     for _ in range(iterations):
-        memory_value = memory.get(current_position, 0)
-        value_to_write, movement, next_state = statemachine[current_state][memory_value]
-        memory[current_position] = value_to_write
-        current_position += movement
-        current_state = next_state
+        memory[cursor], movement, current_state = statemachine[current_state][memory.get(cursor, 0)]
+        cursor += movement
     checksum = sum(v for v in memory.values())
     print(f'Part 1: {checksum}')
 
